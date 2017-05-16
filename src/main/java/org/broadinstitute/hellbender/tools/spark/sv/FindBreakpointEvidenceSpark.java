@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.broadinstitute.hellbender.tools.spark.sv.BreakpointEvidence.ReadEvidence;
 import static org.broadinstitute.hellbender.tools.spark.sv.StructuralVariationDiscoveryArgumentCollection.FindBreakpointEvidenceSparkArgumentCollection;
@@ -343,7 +344,6 @@ public final class FindBreakpointEvidenceSpark extends GATKSparkTool {
         @Override
         public AlignedAssemblyOrExcuse apply( final Tuple2<Integer, List<SVFastqUtils.FastqRead>> intervalAndReads ) {
             final List<SVFastqUtils.FastqRead> readsList = intervalAndReads._2();
-
             final int fastqSize = readsList.stream().mapToInt(FastqRead -> FastqRead.getBases().length).sum();
             if (fastqSize > maxFastqSize) {
                 return new AlignedAssemblyOrExcuse(intervalAndReads._1(),
