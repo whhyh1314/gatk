@@ -14,7 +14,7 @@ import org.broadinstitute.hellbender.cmdline.programgroups.StructuralVariationSp
 import org.broadinstitute.hellbender.engine.spark.GATKSparkTool;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
-import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexSingleton;
+import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +72,7 @@ public final class AlignAssembledContigsSpark extends GATKSparkTool {
 
         allContigAlignments.flatMap(AlignAssembledContigsSpark::formatAlignedAssemblyAsText).saveAsTextFile(output);
 
-        BwaMemIndexSingleton.closeAllDistributedInstances(ctx);
+        BwaMemIndexCache.closeAllDistributedInstances(ctx);
     }
 
     /**

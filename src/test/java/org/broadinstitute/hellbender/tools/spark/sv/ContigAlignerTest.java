@@ -1,7 +1,7 @@
 package org.broadinstitute.hellbender.tools.spark.sv;
 
 import org.broadinstitute.hellbender.utils.SimpleInterval;
-import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexSingleton;
+import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexCache;
 import org.broadinstitute.hellbender.utils.test.BaseTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -161,6 +161,6 @@ public class ContigAlignerTest extends BaseTest {
 
     @AfterClass
     public void tearDown() throws Exception {
-        BwaMemIndexSingleton.closeInstance();
+        BwaMemIndexCache.closeInstances();
     }
 }

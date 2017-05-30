@@ -12,7 +12,6 @@ import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.bwa.*;
 import org.broadinstitute.hellbender.utils.read.GATKRead;
 import org.broadinstitute.hellbender.utils.read.SAMRecordToGATKReadAdapter;
-import org.seqdoop.hadoop_bam.BAMInputFormat;
 
 import java.util.*;
 
@@ -59,7 +58,7 @@ public final class BwaSparkEngine implements AutoCloseable {
     @Override
     public void close() {
         broadcastHeader.destroy();
-        BwaMemIndexSingleton.closeAllDistributedInstances(ctx);
+        BwaMemIndexCache.closeAllDistributedInstances(ctx);
     }
 
     private static final class ReadAligner {
@@ -70,7 +69,7 @@ public final class BwaSparkEngine implements AutoCloseable {
         private static final int READS_PER_PARTITION_GUESS = 1500000;
 
         ReadAligner( final String indexFileName, final SAMFileHeader readsHeader ) {
-            this.bwaMemIndex = BwaMemIndexSingleton.getInstance(indexFileName);
+            this.bwaMemIndex = BwaMemIndexCache.getInstance(indexFileName);
             this.readsHeader = readsHeader;
         }
 

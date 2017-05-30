@@ -133,7 +133,7 @@ public final class FindBreakpointEvidenceSparkUnitTest extends BaseTest {
         public AlignedAssemblyOrExcuse
                     apply( final Tuple2<Integer,List<SVFastqUtils.FastqRead>> intervalAndFastqBytes ) {
             final List<SVFastqUtils.FastqRead> fastqList = intervalAndFastqBytes._2();
-            fastqList.sort(Comparator.comparing(SVFastqUtils.FastqRead::getName));
+            fastqList.sort(Comparator.comparing(SVFastqUtils.FastqRead::getDescriptor));
             final ByteArrayOutputStream os = new ByteArrayOutputStream();
             try { SVFastqUtils.writeFastqStream(os, fastqList.iterator()); }
             catch ( final IOException ioe ) { throw new GATKException("can't stream fastqs into memory", ioe); }

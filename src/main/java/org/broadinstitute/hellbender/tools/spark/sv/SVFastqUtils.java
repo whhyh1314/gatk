@@ -14,6 +14,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Memory-economical utilities for producing a FASTQ file.
@@ -22,18 +24,18 @@ public class SVFastqUtils {
 
     @DefaultSerializer(FastqRead.Serializer.class)
     public static final class FastqRead implements FermiLiteAssembler.BasesAndQuals {
-        private final String name;
+        private final String descriptor;
         private final byte[] bases;
         private final byte[] quals;
 
-        public FastqRead( final String name, final byte[] bases, final byte[] quals ) {
-            this.name = name;
+        public FastqRead( final String descriptor, final byte[] bases, final byte[] quals ) {
+            this.descriptor = descriptor;
             this.bases = bases;
             this.quals = quals;
         }
 
         private FastqRead( final Kryo kryo, final Input input ) {
-            name = input.readString();
+            descriptor = input.readString();
             final int nBases = input.readInt();
             bases = new byte[nBases];
             input.readBytes(bases);
@@ -41,12 +43,32 @@ public class SVFastqUtils {
             input.readBytes(quals);
         }
 
-        public String getName() { return name; }
+        public String getDescriptor() { return descriptor; }
         @Override public byte[] getBases() { return bases; }
         @Override public byte[] getQuals() { return quals; }
 
+        private static Pattern FASTQ_READ_DESCRIPTOR_FORMAT = Pattern.compile("^(\\S+)\\/(\\d+)(\\s.*)?$");
+
+        public String getName() {
+            final Matcher matcher = FASTQ_READ_DESCRIPTOR_FORMAT.matcher(descriptor);
+             if (matcher.find()) {
+                 return matcher.group(1);
+             } else {
+                 return descriptor.split("\\s")[0];
+             }
+        }
+
+        public int getFragmentNumber() {
+            final Matcher matcher = FASTQ_READ_DESCRIPTOR_FORMAT.matcher(descriptor);
+            if (matcher.find()) {
+                return Integer.parseInt(matcher.group(2));
+            } else {
+                return -1;
+            }
+        }
+
         private void serialize( final Kryo kryo, final Output output ) {
-            output.writeAscii(name);
+            output.writeAscii(descriptor);
             output.writeInt(bases.length);
             output.writeBytes(bases);
             output.writeBytes(quals);
@@ -109,7 +131,7 @@ public class SVFastqUtils {
         return reads;
     }
 
-    /** Convert a read's name into a FASTQ record sequence ID */
+    /** Convert a read's descriptor into a FASTQ record sequence ID */
     public static String readToFastqSeqId( final GATKRead read, final boolean includeMappingLocation ) {
         final String nameSuffix = read.isPaired() ? (read.isFirstOfPair() ? "/1" : "/2") : "";
         String mapLoc = "";
@@ -138,7 +160,7 @@ public class SVFastqUtils {
         while ( fastqReadItr.hasNext() ) {
             final FastqRead read = fastqReadItr.next();
             writer.write('@');
-            final String name = read.getName();
+            final String name = read.getDescriptor();
             if ( name == null ) writer.write(Integer.toString(++index).getBytes());
             else writer.write(name.getBytes());
             writer.write('\n');
