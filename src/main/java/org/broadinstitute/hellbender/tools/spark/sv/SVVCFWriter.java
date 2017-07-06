@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class SVVCFWriter {
 
-    static void writeVCF(final PipelineOptions pipelineOptions, final String outputPath, String vcfFileName,
+    static void writeVCF(final PipelineOptions pipelineOptions, String vcfFileName,
                          final String fastaReference, final JavaRDD<VariantContext> variantContexts,
                          final Logger logger) {
 

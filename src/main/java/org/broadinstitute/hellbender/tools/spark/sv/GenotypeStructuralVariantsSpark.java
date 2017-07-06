@@ -127,11 +127,11 @@ public class GenotypeStructuralVariantsSpark extends GATKSparkTool {
     }
 
     private JavaRDD<StructuralVariantContext> processVariants(final JavaRDD<StructuralVariantContext> variants, final JavaSparkContext ctx) {
-        final JavaPairRDD<StructuralVariantContext, List<Integer>> variantAndAssemblyIds = variants.mapToPair(v -> new Tuple2<>(v, v.assemblyIDs()));
+        final JavaPairRDD<StructuralVariantContext, List<String>> variantAndAssemblyIds = variants.mapToPair(v -> new Tuple2<>(v, v.assemblyIDs()));
         final String fastqDir = this.fastqDir;
 
         final JavaPairRDD<StructuralVariantContext, List<String>> variantAndAssemblyFiles = variantAndAssemblyIds
-                .mapValues(v -> v.stream().map(id -> String.format("%s/%s.fastq", fastqDir, AlignedAssemblyOrExcuse.formatAssemblyID(id))).collect(Collectors.toList()));
+                .mapValues(v -> v.stream().map(id -> String.format("%s/%s.fastq", fastqDir, id)).collect(Collectors.toList()));
         final JavaPairRDD<StructuralVariantContext, List<SVFastqUtils.FastqRead>> variantReads = variantAndAssemblyFiles
                 .mapValues(v -> v.stream().flatMap(file -> SVFastqUtils.readFastqFile(file).stream()).collect(Collectors.toList()));
         final JavaPairRDD<StructuralVariantContext, Map<String, List<SVFastqUtils.FastqRead>>> variantReadsByName = variantReads

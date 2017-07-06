@@ -18,7 +18,7 @@ import org.broadinstitute.hellbender.transformers.BaseQualityClipReadTransformer
 import org.broadinstitute.hellbender.transformers.BaseQualityReadTransformer;
 import org.broadinstitute.hellbender.transformers.DUSTReadTransformer;
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexSingleton;
+import org.broadinstitute.hellbender.utils.bwa.BwaMemIndexCache;
 import org.broadinstitute.hellbender.utils.gcs.BucketUtils;
 import org.broadinstitute.hellbender.utils.read.GATKRead;
 import org.broadinstitute.hellbender.utils.read.SAMRecordToGATKReadAdapter;
@@ -289,7 +289,7 @@ public final class PSFilter implements AutoCloseable {
      */
     public void close() {
         reads.foreachPartition(read -> ContainsKmerReadFilter.closeKmerLib());
-        BwaMemIndexSingleton.closeAllDistributedInstances(ctx);
+        BwaMemIndexCache.closeAllDistributedInstances(ctx);
         if (metricsState != null) {
             try {
                 metricsState.close();
