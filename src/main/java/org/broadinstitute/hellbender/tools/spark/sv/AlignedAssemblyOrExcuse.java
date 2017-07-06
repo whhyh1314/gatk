@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -32,6 +34,16 @@ import java.util.stream.Stream;
  */
 @DefaultSerializer(AlignedAssemblyOrExcuse.Serializer.class)
 public final class AlignedAssemblyOrExcuse {
+
+
+    public static String ASSEMBLY_ID_PREFIX = "asm";
+
+    public static String CONTIG_ID_PREFIX = "tig";
+
+    public static char CONTIG_NAME_PART_SPEPARATOR_CHR = ':';
+
+    public static Pattern CONTIG_NAME_PATTERN = Pattern.compile(String.format("%s\\d+%s%s\\d+", ASSEMBLY_ID_PREFIX, CONTIG_NAME_PART_SPEPARATOR_CHR, CONTIG_ID_PREFIX));
+
     private final int assemblyId;
     private final String errorMessage;
     private final FermiLiteAssembly assembly;
@@ -173,15 +185,15 @@ public final class AlignedAssemblyOrExcuse {
     }
 
     public static String formatContigName(final int assemblyId, final int contigIdx) {
-        return formatAssemblyID(assemblyId) + ":" + formatContigID(contigIdx);
+        return formatAssemblyID(assemblyId) + CONTIG_NAME_PART_SPEPARATOR_CHR + formatContigID(contigIdx);
     }
 
     public static String formatAssemblyID(final int assemblyId) {
-        return String.format("asm%06d", assemblyId);
+        return String.format(ASSEMBLY_ID_PREFIX + "%06d", assemblyId);
     }
 
     private static String formatContigID(final int contigIdx) {
-        return String.format("tig%05d", contigIdx);
+        return String.format(CONTIG_ID_PREFIX + "%05d", contigIdx);
     }
 
     /**
@@ -322,6 +334,16 @@ public final class AlignedAssemblyOrExcuse {
                 mapQual, nMismatches, alignerScore, suboptimalScore,
                 cigar, mdTag, xaTag,
                 mateRefId, mateRefStart, templateLen);
+    }
+
+    public static String extractAssemblyId(final String contigName) {
+        Utils.nonNull(contigName, "the input contig name cannot be null");
+        final Matcher matcher = CONTIG_NAME_PATTERN.matcher(contigName);
+        if (matcher.find()) {
+            return contigName.substring(0, contigName.indexOf(CONTIG_NAME_PART_SPEPARATOR_CHR));
+        } else {
+            throw new IllegalArgumentException("invalid contig name: '" + contigName + "'");
+        }
     }
 
     public static final class Serializer extends com.esotericsoftware.kryo.Serializer<AlignedAssemblyOrExcuse> {
