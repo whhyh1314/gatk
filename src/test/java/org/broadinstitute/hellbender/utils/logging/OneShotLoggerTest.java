@@ -11,6 +11,7 @@ import java.util.Properties;
 public class OneShotLoggerTest {
 
     private class StorageLogger extends SimpleLogger {
+        private static final long serialVersionUID = 1L;
         int timesLogged = 0;
 
         public StorageLogger() {
