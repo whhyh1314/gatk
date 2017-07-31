@@ -53,6 +53,9 @@
 \begin{document}
 \maketitle
 
+\section{Questions}
+\todo[inline, color = green]{Deamination is a $C \mapsto T , G \mapsto A$ artifact. Does it take read orientation into consideration?}
+
 \section{Terminology}
 Clearly define:
 Forward strand
@@ -61,13 +64,13 @@ Reverse strand
 \section{Intro}
 We will first discuss how orientation bias arises during sequencing. To do so we will go over Kap ICE library construction (also known as library prep) and a bit of Illumina sequencing. We will abbreviate and abstract the steps along the way to befit our purpose, which again is to understand how orientation bias arises during sequencing. The sequencing protocol described below is Kapa ICE exome. 
 
-We first take vial full of DNA molecules and shear them into fragments. The resulting fragments of DNA, as depicted in the Figure \ref{fig:oxog}, are called \textit{inserts}. Without loss of generality we assume that the strand shown on top in blue is the \textit{forward} strand; that is, read from 5' end to 3' end, bases in the blue strand map directly to the reference. The strand in orange, conversely, is a \textit{reverse} strand, as it is a reverse complement of the reference when read from 5' to 3' end.
+We first take a vial full of DNA molecules and shear them into fragments. The resulting fragments of DNA, as depicted in the Figure \ref{fig:oxog}, are called \textit{inserts}. Without loss of generality we assume that the strand shown on top in blue is the \textit{forward} strand; that is, read from 5' end to 3' end, bases in the blue strand map directly to the reference. The strand in orange, conversely, is a \textit{reverse} strand, as it is a reverse complement of the reference when read from 5' to 3' end.
 
-Few years back, folks at GP found that high-power acoustic shearing (as opposed to enzymatic shearing as in Nexome Library Construction) may cause guanine (G) in the insert to oxidize. The oxidized G may base-pair with adenine (A) in addition to the regular cytosine (C). The oxidized G is depicted as a G* with an asterisk in the figures; thus the forward strand at the top of the figure contains an oxidized G near the 5' end.
+Few years back, folks at GP found that high-power acoustic shearing (as opposed to enzymatic shearing as in Nexome Library Construction) may cause guanine (G) in an insert to oxidize. The oxidized G may base-pair with adenine (A) in addition to the regular cytosine (C). The oxidized G is depicted as a G* with an asterisk in the figures; thus the forward strand at the top of the figure contains an oxidized G near the 5' end.
 
-Next in library prep we add adapters to the double-stranded inserts. In ICE Kapa Exome protocol, we only use one kind of adapter, shown as red and green fragments in Figure \ref{fig:oxog}, and this one type of (double-stranded) adapter attaches to both sides of the insert. To reiterate, the adapters on the left and right side are identical, but, due to directionality of the DNA molecule, they are flipped. We call a DNA insert with adapters attached a \text{library}. To distinguish them from the libraries created in subsequent PCR, we call this insert an \textit{original library}, in the sense that they are not PCR duplicates of the DNA.
+Next in library prep we add adapters to the double-stranded inserts. In ICE Kapa Exome protocol, we only use one kind of double-stranded adapter, shown in red and green in Figure \ref{fig:oxog}. What this means is that the clones of the same double-stranded adapter attach to both sides of the insert (they are flipped due to the asymmetry of DNA). Note that the ends of adapters are not base-paired; that is, the sequences on the two strands are not complementary. This will play a crucial role later on. \todo{Must be more specific here} A \textit{library} refers to an insert with adapters attached on both ends. We will subsequently make many copies of each \textit{original library} via PCR.
 
-Next we denature the original library and run PCR. PCR replicates of the forward strand are shown on the bottom left corner in the figure. Note that during PCR G* in the forward strand base paired with A, which, after another round of PCR, created a third duplicate with a T in place of the original G. PCR replicates the reverse strand, shown in deep orange, faithfully and thus we get only one type of PCR duplicate\footnote{in reality this is unlikely. But since we are talking about an idealized, abstracted world anyway, we are free to suppose that this is the case}. 
+PCR replicates of the forward strand are shown on the bottom left corner in the figure. Note that during PCR G* in the forward strand base paired with A, which, after another round of PCR, created a third duplicate with a T in place of the original G. PCR replicates the reverse strand, shown in deep orange, faithfully and thus we get only one type of PCR duplicate\footnote{in reality this is unlikely. But since we are talking about an idealized, abstracted world anyway, we are free to suppose that this is the case}. 
 
 Now we pour the libraries on the flowcell, as detailed in Figure \ref{fig:flowcell}. 
 
@@ -75,7 +78,7 @@ Now we pour the libraries on the flowcell, as detailed in Figure \ref{fig:flowce
 %%%%%
  
 
-Couple things to note about the adapters; adapters are not symmetric. That is, once adapter is ligated, the two strands in the double stranded insert molecule behave differently. Namely, the way adapter is ligated to the DNA decides which strand, forward or reverse, will be sequenced first. This means that we can sequence the same molecule two different ways, depending on how the adapter is ligated; read the forward strand first, or read the reverse strand first. This happens at random. We mark the read pair in the former case to have F1R2 orientation and the latter F2R1. For the adapter ligation happens at random, we should see about an equal amount of F1R2 and F2R1 reads. For a fixed insert, the way adapter is ligated does not affect which sequences are read. 
+Couple things to note about the adapters; adapters are not symmetric. That is, once adapter is ligated, the two strands in the double stranded insert molecule behave differently. Namely, the way adapter is ligated to the DNA decides which strand, forward or reverse, will be sequenced first. This means that we can sequence the same molecule two different ways, depending on how the adapter is ligated; read the forward strand first, or read the reverse strand first. This happens at random. We mark the read pair in the former case to have F1R2 orientation and the latter F2R1. Since the adapter ligation happens at random, we should see about an equal amount of F1R2 and F2R1 reads. For a fixed insert, the way adapter is ligated does not affect which sequences are read. 
 
 Orientation bias is a form of sequencing artifact in which the alternate allele occurs exclusively in F1R2 reads or F2R1 reads. Since the orientation of reads should be balanced - as we have no reason to believe that the adapter prefers to ligate one way over the other - the skew in read orientation e.g. evidence for SNP all comes from F1R2 reads leads us to suspect the call.
 
@@ -101,7 +104,7 @@ We then ligate adapters to this double stranded DNA. The way we
 
 \begin{figure}
   \includegraphics[width=\linewidth]{flowcell.pdf}
-  \caption{(Left) By virtue of the 3' end of the original adapter (in deep red) containing sequence complementary to the oligo tethered to the flow cell (P7), the strands in the original library, not the strands filled in by PCR, will be read first. That is, the sequencer synthesizes and fluoresces the bases in the original library first. Here, Read1 will read a T in the forward strand, where the reference has G. Thus the read will have a G -> T substitution. }
+  \caption{(Left) By virtue of the 3' end of the original adapter (in deep red) containing sequence complementary to the oligo tethered to the flow cell (P7), the strands in the original library, not the strands filled in by PCR, will be read first, as shown on the right panel of the figure. That is, the sequencer synthesizes and fluoresces the bases in the original library first. Here, Read1 will read a T in the forward strand, where the reference has G. Thus the read will have a G -> T substitution. }
   \label{fig:flowcell}
 \end{figure}
 
