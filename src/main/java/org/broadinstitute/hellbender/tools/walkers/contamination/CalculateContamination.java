@@ -1,6 +1,7 @@
 package org.broadinstitute.hellbender.tools.walkers.contamination;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,6 +53,7 @@ import java.util.stream.IntStream;
 public class CalculateContamination extends CommandLineProgram {
 
     private static final Logger logger = LogManager.getLogger(CalculateContamination.class);
+    public static final double P_VALUE_THRESHOLD_FOR_HETS = 0.4;
 
     @Argument(fullName = StandardArgumentDefinitions.INPUT_LONG_NAME,
             shortName = StandardArgumentDefinitions.INPUT_SHORT_NAME,
@@ -113,9 +115,9 @@ public class CalculateContamination extends CommandLineProgram {
             final double averageNearbyCopyRatio = nearbySites.stream().mapToDouble(s -> s.getTotalCount()/averageCoverage).average().orElseGet(() -> 0);
             smoothedCopyRatios.add(averageNearbyCopyRatio);
 
-            final double expectedNumberOfNearbyHets = nearbySites.stream().mapToDouble(PileupSummary::getAlleleFrequency).map(x -> 2*x*(1-x)).sum();
-            final long numberOfNearbyHets = nearbySites.stream().mapToDouble(PileupSummary::getAltFraction).filter(x -> 0.4 < x && x < 0.6).count();
-            final double hetRatio = numberOfNearbyHets / expectedNumberOfNearbyHets;
+            final double expectedNumberOfNearbyConfidentHets = (1 - P_VALUE_THRESHOLD_FOR_HETS) * nearbySites.stream().mapToDouble(PileupSummary::getAlleleFrequency).map(x -> 2*x*(1-x)).sum();
+            final long numberOfNearbyConfidentHets = nearbySites.stream().filter(ps -> isConfidentHet(ps, P_VALUE_THRESHOLD_FOR_HETS)).count();
+            final double hetRatio = numberOfNearbyConfidentHets / expectedNumberOfNearbyConfidentHets;
             hetRatios.add(hetRatio);
         }
 
@@ -124,9 +126,9 @@ public class CalculateContamination extends CommandLineProgram {
                 .filter(n -> smoothedCopyRatios.get(n) < 0.8 * medianSmoothedCopyRatio || smoothedCopyRatios.get(n) > 2 *medianSmoothedCopyRatio)
                 .boxed().collect(Collectors.toList());
 
-        final double meanHetRatio = hetRatios.stream().mapToDouble(x->x).average().getAsDouble();
+        final double medianHetRatio = new Median().evaluate(hetRatios.stream().mapToDouble(x->x).toArray());
         final List<Integer> indicesWithLossOfHeterozygosity = IntStream.range(0, sites.size())
-                .filter(n -> hetRatios.get(n) < meanHetRatio * 0.5)
+                .filter(n -> hetRatios.get(n) < medianHetRatio * 0.5)
                 .boxed().collect(Collectors.toList());
 
         //TODO: as extra security, filter out sites that are near too many hom alts
@@ -134,7 +136,7 @@ public class CalculateContamination extends CommandLineProgram {
         logger.info(String.format("Excluding %d sites with low or high copy ratio and %d sites with potential loss of heterozygosity",
                 indicesWithAnomalousCopyRatio.size(), indicesWithLossOfHeterozygosity.size()));
 
-        logger.info(String.format("The average ratio of hets within distance %d to theoretically expected number of hets is %.3f", CNV_SCALE, meanHetRatio));
+        logger.info(String.format("The average ratio of hets within distance %d to theoretically expected number of hets is %.3f", CNV_SCALE, medianHetRatio));
 
         final Set<Integer> badSites = new TreeSet<>();
         badSites.addAll(indicesWithAnomalousCopyRatio);
@@ -145,5 +147,19 @@ public class CalculateContamination extends CommandLineProgram {
                 .mapToObj(sites::get)
                 .filter(s -> s.getAltFraction() > 0.8)
                 .collect(Collectors.toList());
+    }
+
+    // Can we reject the null hypothesis that a site is het?
+    // the pValue threshold is (almost) the rejection rate of true hets -- almost because the binomial is a discrete distribution
+    private static boolean isConfidentHet(final PileupSummary ps, final double pValueThreshold) {
+        final int altCount = ps.getAltCount();
+        final int totalCount = ps.getTotalCount();
+        final BinomialDistribution binomialDistribution = new BinomialDistribution(null, totalCount, 0.5);
+
+        // this pValue is the probability under the null hypothesis of an allele fraction at least as far from 1/2 as this
+        // the factor of 2 comes from the symmetry of the binomial distribution -- the two-sided p-value is twice the one-side p-value
+        final double pValue = 2 * binomialDistribution.cumulativeProbability(Math.min(altCount, totalCount - altCount));
+
+        return pValue > pValueThreshold;
     }
 }
