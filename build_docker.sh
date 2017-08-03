@@ -91,7 +91,7 @@ if [ -n "$STAGING_DIR" ]; then
     set -e
     GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/${REPO}/${PROJECT}.git ${STAGING_DIR}/${STAGING_CLONE_DIR}
     cd ${STAGING_DIR}/${STAGING_CLONE_DIR}
-   STAGING_ABSOLUTE_PATH=$(pwd)
+    STAGING_ABSOLUTE_PATH=$(pwd)
 
     echo "Now in $(pwd)"
     if [ ${PULL_REQUEST_NUMBER} ]; then
