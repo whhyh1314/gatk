@@ -111,7 +111,7 @@ We then ligate adapters to this double stranded DNA. The way we
 
 \section{Oxog}
 
-Oxog, for our purposes, is a process in which guanine (G-base) is oxidized and is able to base pair with adenine (A) instead of the usual cytosine (C). We know that this takes place somewhere in the process of sequencing the DNA in the lab. Suppose that an adapter-ligated DNA insert is oxidized to oxoG. This may happen on a forward strand or on a reverse strand. Consider the case in which it occurs in the forward strand, call this $x$. When we sequence $x$, it gets ligate to the oligo tethered to the flow cell, and we base pair the rest. At the end we get the reverse complement of $x$, call it $x'$, tethered to the flowcell. Thanks to the oxidized $G$ in $x$, $x'$ contains an $A$ where it would normally have a $C$. Now we bind the primer to the read 1 primer binding site in $x'$, and we read off the bases. Where we should have read $G$, we will read a $T$. An artifact. Notice that we read the forward read first, so this read is F1R2.
+Oxog, for our purposes, is a process in which guanine (G-base) is oxidized and is able to base pair with adenine (A) instead of the usual cytosine (C). We know that this takes place somewhere in the process of sequencing the DNA in the lab. Suppose that an adapter-ligated DNA insert is oxidized to oxoG. This may happen on a forward strand or on a reverse strand. Consider the case in which it occurs in the forward strand, and call this $x$. When we sequence $x$, it gets ligate to the oligo tethered to the flow cell, and we base pair the rest. At the end we get the reverse complement of $x$, call it $x'$, tethered to the flowcell. Thanks to the oxidized $G$ in $x$, $x'$ contains an $A$ where it would normally have a $C$. Now we bind the primer to the read 1 primer binding site in $x'$, and we read off the bases. Where we should have read $G$, we will read a $T$. An artifact. Notice that we read the forward read first, so this read is F1R2.
 
 Why wouldn't this artifact appear in a F2R1 read? Well, to have an F2R1 read
 
@@ -126,7 +126,7 @@ The probabilistic model consists of the following random variables. For each ref
 z \in \{ \mathrm{F1R2}, \mathrm{F2R1}, \mathrm{Balanced Hom Ref}, \mathrm{ Balanced Het }, \mathrm{ Balanced Hom Var } \}
 \end{equation*}
 
-$z \sim \mathrm{Categorical}(\vpi_c)$, where $\pi_{ck}$ is the context dependent prior probability of kth component $Z$ and thus satisfies $\sum_k \pi_{ck} = 1$, where $k \in [1, |Z|]$. The number of ALT allele at the site, $m$, depends on the state $z$. We explicitly model the number of ALT alleles because its dependence on $z$ encapsulates our knowledge that, when orientation bias is present, we \textit{always} have some number of (artifactual) ALT reads at the site. In other words, if we do not observe ALT reads at all (i.e. $z = \mathrm{Hom ref}$), we cannot have orientation bias at the site. $m|z \sim \mathrm{Binom(p_z)}$. We then model the number of $F1R2$ reads among $m$ ALT reads as $x|m \sim \mathrm{Binom(\vtheta_z)}$, parameterized by $\vtheta_z$ that depends on whether the site suffers from orientation bias or, in other words, depends on the $z$. 
+$z \sim \mathrm{Categorical}(\vpi_c)$, where $\pi_{ck}$ is the context dependent prior probability of kth component $Z$ and thus satisfies $\sum_k \pi_{ck} = 1$, where $k \in [1, |Z|]$. The number of ALT allele at the site, $m$, is a binomial random variable that depends on the state $z$; $m|z \sim \mathrm{Binom(p_z)}$. We explicitly model the number of ALT alleles because its dependence on $z$ encapsulates our knowledge that, when orientation bias is present, we \textit{always} have some number of (artifactual) ALT reads at the site. In other words, if we do not observe ALT reads at all (i.e. $z = \mathrm{Hom ref}$), we cannot have orientation bias at the site. \todo[inline, color = green]{This is not a valid i.e. We cannot assume that $m = 0$ and $z = \text{hom ref}$ go together. Rather, we must design the model such that this is the case. That is, we give it a very low likelihood when $m = 0$ and $z$ is anything other than hom ref.}. We then model the number of $F1R2$ reads among $m$ ALT reads as $x|m,z \sim \mathrm{Binom(\vtheta_z)}$, parameterized by $\theta_z$ that depends on whether the site suffers from orientation bias. In other words, $\theta$ depends on $z$. 
 
 \begin{figure}
 \centering
@@ -139,7 +139,7 @@ $z \sim \mathrm{Categorical}(\vpi_c)$, where $\pi_{ck}$ is the context dependent
 
 %%%
 \subsection{EM algorithm}
-We may use the EM algorithm to estimate the hyperparameters $\vpi$ and $\vp$. We can then compute the posterior probability of the latent variable $z$ to determine whether a variant is an orientation artifact and thus should be filtered.
+We estimate the hyperparameters $\vpi$ and $\vp$ that maximize likelihood using the EM algorithm. We can then compute the posterior probability of the latent variable $z$ to determine whether a variant is an orientation artifact and thus should be filtered.
 
 \subsubsection{E step}
 In the E step, we compute the responsibility of the $k$th component of $z$, denoted $\gamma_{nk} = p(z_{nk} | x_n, m_n)$. $\gamma_{nk}$ is the posterior probability of $k$th component of $z$ given the observed variables $x_n$ and $m_n$. By Bayes rule we have
@@ -157,7 +157,7 @@ where $R$ is the number of reads at site $n$, and the asterisk over $\gamma^*_{n
 \end{align}
 
 \subsubsection{M step}
-In the M step, we compute the expectation of the complete-data log likelihood with respect to the posterior distribution over $z$ (so $\E$ stands for $\E_{Z \sim p(Z|X,M)}$). Thus,
+In the M step, we maximize the expectation of the complete-data log likelihood with respect to the posterior distribution over $z$ (so $\E$ is a shorthand for $\E_{Z \sim p(Z|X,M)}$). The complete-data log likelihood $p(X, M, Z | \vpi, \vp, \vtheta)$ follows directly from the graphical model. the expectation, we get
 
 \begin{align}
 \E [ \ln p(X, M , Z | \vpi, \vp, \vtheta) ] &= \E [ \ln \prod_{n = 1}^{N}  p(Z) p(M | Z, p_{z} ) p(X | M, Z ) ] \nonumber \\
@@ -169,7 +169,7 @@ In the M step, we compute the expectation of the complete-data log likelihood wi
 						    &\phantom{---------------} x_n \ln \theta_k + (m_n - x_n) \ln (1 - \theta_k) \label{eq:expjointLL} \}
 \end{align} 
 
-where $K = |Z|$, $X$ is the design matrix whose $n$th row is $x_n$ ($M$ and $Z$ are defined analogously), and $\E [ z_{nk} ] = \gamma_{nk}$. We define the next three terms mainly for convenience but also because they have nice interpretations.
+where $K = |Z|$, $X$ is the design matrix whose $n$th row is $x_n$ ($M$ and $Z$ are defined analogously), and $\E [ z_{nk} ] = \gamma_{nk}$. We define the following three terms mainly for convenience, but also because they have nice interpretations.
 
 \begin{align}
 N_k      &= \sum_n \gamma_{nk} \label{eq:nk} \\
@@ -177,7 +177,7 @@ N_k      &= \sum_n \gamma_{nk} \label{eq:nk} \\
 \bar{m}_k &= \frac{1}{N_k} \sum_n \gamma_{nk} m_n \label{eq:mbar}
 \end{align}
 
-$N_k$ is the effective number of samples that were in state $z = z_k$, while $\bar{x}_k$ and $\bar{m}_k$ are the sample means of $x$ and $m$ weighted by each sample's responsibility in explaining the $k$th component. We now take the derivative of (\ref{eq:expjointLL}) with respect to $\theta_k, p_k, \pi_k$ and set each equal to 0, which yields:
+$N_k$ is the effective number of samples that were in state $z = z_k$, while $\bar{x}_k$ and $\bar{m}_k$ are the effective sample means of $x_k$ and $m_k$. We now take the derivative of (\ref{eq:expjointLL}) with respect to $\theta_k, p_k, \pi_k$ and set each equal to 0, which yields:
 
 \begin{align}
 \frac{\partial}{\partial \theta_k} &= \sum_n \gamma_{nk} \Big( \frac{ x_n}{\theta_k} - \frac{m_n - x_n}{1- \theta_k} \Big)\\
@@ -190,7 +190,7 @@ where we used (\ref{eq:xbar}) and (\ref{eq:mbar}). Solving for $\theta_k$, we ge
 \hat{\theta}_k = \frac{\bar{x}_k}{\bar{m}_k} \label{eq:theta}
 \end{align}
 
-Derivative with respect to $p_k$ is completely analogous. In the end, we get
+Derivative with respect to $p_k$ is completely analogous:
 
 \begin{align}
 \hat{p}_k = \frac{\bar{m}_k}{R} \label{eq:p}
