@@ -118,20 +118,26 @@ Why wouldn't this artifact appear in a F2R1 read? Well, to have an F2R1 read
 \subsection{How PCR multplies inserts with oxog}
 
 
-\section{The generative model}
+\section{The probabilistic model}
 
-The probabilistic model consists of the following random variables. For each reference context $i$ - that is, for every $k$-mer in the reference - the discrete latent variable $z$ represents the state of the site with respect to the degree of orientation-bias 
+Our probabilistic graphical model is in Figure (\ref{fig:pgm}). For each reference context $c$ - that is, for every $k$-mer in the reference - the discrete latent variable $z$ represents the state of the site with respect to the degree of orientation-bias 
 
 \begin{equation*}
-z \in \{ \mathrm{F1R2}, \mathrm{F2R1}, \mathrm{Balanced Hom Ref}, \mathrm{ Balanced Het }, \mathrm{ Balanced Hom Var } \}
+z \in \{ \text{F1R2}, \text{F2R1}, \text{Balanced Hom Ref}, \text{Balanced Het}, \text{Balanced Hom Var} \}
 \end{equation*}
 
-$z \sim \mathrm{Categorical}(\vpi_c)$, where $\pi_{ck}$ is the context dependent prior probability of kth component $Z$ and thus satisfies $\sum_k \pi_{ck} = 1$, where $k \in [1, |Z|]$. The number of ALT allele at the site, $m$, is a binomial random variable that depends on the state $z$; $m|z \sim \mathrm{Binom(p_z)}$. We explicitly model the number of ALT alleles because its dependence on $z$ encapsulates our knowledge that, when orientation bias is present, we \textit{always} have some number of (artifactual) ALT reads at the site. In other words, if we do not observe ALT reads at all (i.e. $z = \mathrm{Hom ref}$), we cannot have orientation bias at the site. \todo[inline, color = green]{This is not a valid i.e. We cannot assume that $m = 0$ and $z = \text{hom ref}$ go together. Rather, we must design the model such that this is the case. That is, we give it a very low likelihood when $m = 0$ and $z$ is anything other than hom ref.}. We then model the number of $F1R2$ reads among $m$ ALT reads as $x|m,z \sim \mathrm{Binom(\vtheta_z)}$, parameterized by $\theta_z$ that depends on whether the site suffers from orientation bias. In other words, $\theta$ depends on $z$. 
+$z \sim \mathrm{Categorical}(\vpi^a_c)$, where $\pi^a_{ck}$ is the context dependent prior probability of kth component $Z$ given allele $a$ and satisfies $\sum_k \pi^a_{ck} = 1$, where $k \in [1, |Z|]$. The number of ALT allele at the site, $m$, is a binomial random variable whose probability of success $f$ (i.e. allele fraction) depends on the state $z$. We explicitly model the number of ALT alleles because its dependence on $z$ encapsulates our knowledge that, when orientation bias is present, we \textit{always} have (artifactual) ALT reads at the site. In other words, if we do not observe ALT reads at all (i.e. $z = \mathrm{Hom ref}$), we cannot have orientation bias at the site. \todo[inline, color = green]{This is not a valid i.e. We cannot assume that $m = 0$ and $z = \text{hom ref}$ go together. Rather, we must design the model such that this is the case. That is, we give it a very low likelihood when $m = 0$ and $z$ is anything other than hom ref.}. We then model the number of $F1R2$ reads among $m$ ALT reads as $x|m,z \sim \mathrm{Binom(\vtheta_z)}$, parameterized by $\theta_z$ that depends on whether the site suffers from orientation bias. In other words, $\theta$ depends on $z$. 
+
+\begin{itemize}
+\item $z \sim \mathrm{Categorical}(\vpi^a_c)$
+\item $m | z \sim \mathrm{Binom(f_z)}$
+\item $x | m,z \sim \mathrm{Binom(\vtheta_z)}$
+\end{itemize}
 
 \begin{figure}
 \centering
 \includegraphics[width=0.3\textwidth]{pgm.png}
-\caption{\label{fig:pgm} The probabilistic graphical model}
+\caption{\label{fig:pgm} The probabilistic graphical model for the orientation bias filter}
 \end{figure}
 
 % TODO: What does the model know? What doesn't it know? The model does not know about the normal sample. If there's a low allele fraction variant in 
@@ -146,26 +152,26 @@ In the E step, we compute the responsibility of the $k$th component of $z$, deno
 
 \begin{align}
 \gamma^*_{nk} &\propto p(z_{k} | x_n) \nonumber \\
-		        &\propto p(z_{k}) p(m_n | z_k, p_{z} ) p(x_n | m_n ) \nonumber \\
-		        &= \pi_k  \{ p_{z}^{m_n} (1-p_k)^{R - m_n} \} \{ \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} \}
+		        &\propto p(z_{k}) p(m_n | z_k, f_{k} ) p(x_n | m_n ) \nonumber \\
+		        &= \pi_k  \{ f_{k}^{m_n} (1-f_k)^{R - m_n} \} \{ \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} \}
 \end{align}
 
-where $R$ is the number of reads at site $n$, and the asterisk over $\gamma^*_{nk}$ denotes that the responsibility is not normalized and thus is not a probability. We normalize each responsibility by dividing by their sum as below.
+where $R$ is the number of reads at site $n$, and the asterisk over $\gamma^*_{nk}$ denotes that the responsibility is not normalized and thus is not a probability. Normalizing responsibilities gives us
 
 \begin{align}
 \gamma_{nk} = \frac{\gamma^*_{nk}}{\sum_{k'} \gamma^*_{nk'}}
 \end{align}
 
 \subsubsection{M step}
-In the M step, we maximize the expectation of the complete-data log likelihood with respect to the posterior distribution over $z$ (so $\E$ is a shorthand for $\E_{Z \sim p(Z|X,M)}$). The complete-data log likelihood $p(X, M, Z | \vpi, \vp, \vtheta)$ follows directly from the graphical model. the expectation, we get
+In the M step, we maximize the expectation of the complete-data log likelihood with respect to the posterior distribution over $z$ (so $\E$ is a shorthand for $\E_{Z \sim p(Z|X,M)}$). The complete-data log likelihood $p(X, M, Z | \vpi, \vp, \vtheta)$ follows directly from the graphical model, and its expectation is
 
 \begin{align}
 \E [ \ln p(X, M , Z | \vpi, \vp, \vtheta) ] &= \E [ \ln \prod_{n = 1}^{N}  p(Z) p(M | Z, p_{z} ) p(X | M, Z ) ] \nonumber \\
-							&= \E [ \ln \prod_{n = 1}^{N} \{ \prod_{k = 1}^{K} \pi_k^{z_{kn}} \} \{ \prod_{k = 1}^{K} ( p_k^{m_n} (1-p_k)^{R - m_n} ) ^{z_{nk}} \} \{ \prod_{k = 1}^{K} ( \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} )^{z_{nk}} \} ] \notag \\
-							&= \E [ \ln \prod_{n = 1}^{N} \prod_{k = 1}^{K} ( \pi_k  p_{k}^{m_n} (1-p_k)^{R - m_n} \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} )^{z_{nk}} ]  \nonumber \\
-							&= \E [ \sum_{n = 1}^{N} \sum_{k = 1}^{K} z_{nk} \{ \ln \pi_k  + m_n \ln p_k + (R - m_n) \ln (1-p_k) + \notag \\
+							&= \E [ \ln \prod_{n = 1}^{N} \{ \prod_{k = 1}^{K} \pi_k^{z_{kn}} \} \{ \prod_{k = 1}^{K} ( f_k^{m_n} (1-f_k)^{R - m_n} ) ^{z_{nk}} \} \{ \prod_{k = 1}^{K} ( \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} )^{z_{nk}} \} ] \notag \\
+							&= \E [ \ln \prod_{n = 1}^{N} \prod_{k = 1}^{K} ( \pi_k  f_{k}^{m_n} (1-f_k)^{R - m_n} \theta_k^{x_n} (1 - \theta_k)^{m_n - x_n} )^{z_{nk}} ]  \nonumber \\
+							&= \E [ \sum_{n = 1}^{N} \sum_{k = 1}^{K} z_{nk} \{ \ln \pi_k  + m_n \ln f_k + (R - m_n) \ln (1-f_k) + \notag \\
 							&\phantom{---------------} x_n \ln \theta_k + (m_n - x_n) \ln (1 - \theta_k) \} ]  \nonumber \\
-							&= \sum_{n = 1}^{N} \sum_{k = 1}^{K} \gamma_{nk} \{ \ln \pi_k  + m_n \ln p_k + (R - m_n) \ln (1-p_k) + \notag \\
+							&= \sum_{n = 1}^{N} \sum_{k = 1}^{K} \gamma_{nk} \{ \ln \pi_k  + m_n \ln f_k + (R - m_n) \ln (1-f_k) + \notag \\
 						    &\phantom{---------------} x_n \ln \theta_k + (m_n - x_n) \ln (1 - \theta_k) \label{eq:expjointLL} \}
 \end{align} 
 
@@ -190,10 +196,10 @@ where we used (\ref{eq:xbar}) and (\ref{eq:mbar}). Solving for $\theta_k$, we ge
 \hat{\theta}_k = \frac{\bar{x}_k}{\bar{m}_k} \label{eq:theta}
 \end{align}
 
-Derivative with respect to $p_k$ is completely analogous:
+Derivative with respect to $f_k$ is completely analogous:
 
 \begin{align}
-\hat{p}_k = \frac{\bar{m}_k}{R} \label{eq:p}
+\hat{f}_k = \frac{\bar{m}_k}{R} \label{eq:f}
 \end{align}
 
 Finally we take the derivative with respect to $\pi_k$ under the constraint $\sum_k \pi_k = 1$. Using a Lagrange multiplier to account for the constraint, we get
@@ -248,6 +254,13 @@ When mean field theory is used, the conjugacy across nodes is not crucial. Conju
 $m$ could be binomial. Or it could be beta-binomial. Beta-binomial has larger spread when $n$ is large or something. 
 
 At one point I suggested that $m|z = \mathrm{no bias}$ be a mixture, between somatic variant (where $m$ can be large) or hom ref (where $m$). Instead I could just add more values to the $z$ variable such that $z \in \{ \text{F1R2}, \text{F2R1}, \text{Balanced Hom Ref}, \text{Balanced Somatic}, \text{Germline} \}$.
+
+%%%%%%%%%%
+\section{Previous approach, and why my filter is better}
+\begin{itemize}
+\item The old tool adds up the count of pro, con, ref, alt for each transition over different contexts, so if there's any context-specific information we lose it.
+\item 
+\end{itemize}
 
 
 
