@@ -20,7 +20,6 @@ public class ContextDependentArtifactFilterIntegrationTest extends CommandLinePr
         final String[] args = {
                 "-R", b37_reference_20_21,
                 "-I", dream1Bam.getAbsolutePath(),
-                "-V", mutectVcf.getAbsolutePath(),
                 "-O", output.getAbsolutePath()
         };
 

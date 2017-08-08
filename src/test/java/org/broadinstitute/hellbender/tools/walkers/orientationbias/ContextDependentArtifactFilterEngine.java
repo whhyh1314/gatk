@@ -45,8 +45,7 @@ public class ContextDependentArtifactFilterEngine {
     // When the increase in likelihood falls below this value we deem the algorithm converged
     final double EPSILON = 1e-4;
 
-    public ContextDependentArtifactFilterEngine(final int numLoci){
-        this.numLoci = numLoci;
+    public ContextDependentArtifactFilterEngine(){
         initializeParameters();
     }
 
