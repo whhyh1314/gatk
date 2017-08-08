@@ -1063,4 +1063,21 @@ public final class MathUtilsUnitTest extends BaseTest {
         MathUtils.distanceSquared(v1, v2);
         Assert.fail("Vectors with unequal lengths should throw");
     }
+
+    @Test
+    public void testArgMax(){
+        final int[] array1 = new int[]{ 1, 2, 3, 4, 5, 6};
+        final int expected1 = 5;
+        final int[] array2 = new int[]{ 6, 5, 4, 3, 2, 1};
+        final int expected2 = 0;
+        final int[] array3 = new int[]{ 3, 6, 2, 1, 4, 5};
+        final int expected3 = 1;
+        final int[] array4 = new int[]{ 3, 3, 3, 5, 5, 5};
+        final int expected4 = 3;
+
+        Assert.assertEquals(MathUtils.argmax(array1), expected1);
+        Assert.assertEquals(MathUtils.argmax(array2), expected2);
+        Assert.assertEquals(MathUtils.argmax(array3), expected3);
+        Assert.assertEquals(MathUtils.argmax(array4), expected4);
+    }
 }

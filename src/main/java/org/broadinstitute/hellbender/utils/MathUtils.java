@@ -980,4 +980,21 @@ public final class MathUtils {
         }
         return true;
     }
+
+    /**
+     *
+     * @param array
+     * @return index of the max. In case of a tie, return the smallest index
+     */
+    public static int argmax(final int[] array){
+        int maxIndex = 0;
+        int currentMax = Integer.MIN_VALUE;
+        for (int i = 0; i < array.length; i++){
+            if (array[i] > currentMax){
+                maxIndex = i;
+                currentMax = array[i];
+            }
+        }
+        return maxIndex;
+    }
 }
