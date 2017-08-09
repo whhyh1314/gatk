@@ -115,7 +115,7 @@ public class HaplotypeCallerIntegrationTest extends CommandLineProgramTest {
      * Test that in VCF mode we're >= 99% concordant with GATK3.8 results
      */
     @Test(expectedExceptions = UserException.class)
-    public void testVCFModeIsConcordantWithGATK3.8ResultsAlleleSpecificAnnotations() throws Exception {
+    public void testVCFModeIsConcordantWithGATK3_8ResultsAlleleSpecificAnnotations() throws Exception {
         Utils.resetRandomGenerator();
 
         final File output = createTempFile("testVCFModeIsConcordantWithGATK3.8ResultsAlleleSpecificAnnotations", ".vcf");
@@ -207,7 +207,7 @@ public class HaplotypeCallerIntegrationTest extends CommandLineProgramTest {
      * Test that in GVCF mode we're >= 99% concordant with GATK3 results
      */
     @Test
-    public void testGVCFModeIsConcordantWithGATK3.8Results() throws Exception {
+    public void testGVCFModeIsConcordantWithGATK3_8Results() throws Exception {
         Utils.resetRandomGenerator();
 
         final File output = createTempFile("testGVCFModeIsConcordantWithGATK3Results", ".g.vcf");
@@ -236,9 +236,9 @@ public class HaplotypeCallerIntegrationTest extends CommandLineProgramTest {
     }
 
     @Test
-    public void testGVCFModeIsConcordantWithGATK3.8AlelleSpecificResults() throws Exception {
+    public void testGVCFModeIsConcordantWithGATK3_8AlelleSpecificResults() throws Exception {
         Utils.resetRandomGenerator();
-        final File output = createTempFile("testGVCFModeIsConcordantWithGATK3.8AlelleSpecificResults", ".g.vcf");
+        final File output = createTempFile("testGVCFModeIsConcordantWithGATK3_8AlelleSpecificResults", ".g.vcf");
 
         //Created by running:
         // java -jar gatk.3.8-4-g7b0250253f.jar -T HaplotypeCaller \
@@ -283,7 +283,7 @@ public class HaplotypeCallerIntegrationTest extends CommandLineProgramTest {
         Utils.resetRandomGenerator();
 
         // We will test that when running with -bamout over the testInterval, we produce
-        // a bam with a number of reads that is within 10% of what GATK3.8 produces with
+        // a bam with a number of reads that is within 10% of what GATK3.5 produces with
         // -bamout over the same interval. This is just to test that we produce a reasonably-sized
         // bam for the region, not to validate the haplotypes, etc. We don't want
         // this test to fail unless there is a likely problem with -bamout itself (eg., empty
@@ -350,7 +350,7 @@ public class HaplotypeCallerIntegrationTest extends CommandLineProgramTest {
     }
 
     // test that ReadFilterLibrary.NON_ZERO_REFERENCE_LENGTH_ALIGNMENT removes reads that consume zero reference bases
-    // e.g. read name HAVCYADXX150109:1:2102:20528:2129 with cigar 23.83I
+    // e.g. read name HAVCYADXX150109:1:2102:20528:2129 with cigar 23S53I
     @Test
     public void testReadsThatConsumeZeroReferenceReads() throws Exception {
         final String CONSUMES_ZERO_REFERENCE_BASES = publicTestDir + "org/broadinstitute/hellbender/tools/mutect/na12878-chr20-consumes-zero-reference-bases.bam";
