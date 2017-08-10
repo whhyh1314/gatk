@@ -25,6 +25,33 @@ import java.util.stream.Collectors;
 class AnnotatedVariantProducer implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public static Iterator<VariantContext> produceMultipleAnnotatedVcFromNovelAdjacency(final NovelAdjacencyReferenceLocations novelAdjacencyReferenceLocations,
+                                                                                        final Iterable<SvType> inferredType,
+                                                                                        final Iterable<ChimericAlignment> contigAlignments,
+                                                                                        final Broadcast<ReferenceMultiSource> broadcastReference)
+            throws IOException {
+
+        Utils.validateArg(inferredType.iterator().hasNext(),
+                "Input novel adjacency doesn't have any inferred type: \n" +
+                        Utils.stream(contigAlignments).map(ChimericAlignment::onErrStringRep).collect(Collectors.toList()));
+
+        final Iterator<SvType> it = inferredType.iterator();
+        final VariantContext record =
+                produceAnnotatedVcFromInferredTypeAndRefLocations(novelAdjacencyReferenceLocations.leftJustifiedLeftRefLoc, -1,
+                        novelAdjacencyReferenceLocations.complication, it.next(), contigAlignments, broadcastReference);
+
+        final List<VariantContext> result = new ArrayList<>();
+        result.add(record);
+        // hack for now because up to this point inferredType would have max of 2 only
+        while (it.hasNext()) {
+            final VariantContext mateRecord =
+                    produceAnnotatedVcFromInferredTypeAndRefLocations(novelAdjacencyReferenceLocations.leftJustifiedRightRefLoc, -1,
+                            novelAdjacencyReferenceLocations.complication, it.next(), contigAlignments, broadcastReference);
+            result.add(mateRecord);
+        }
+        return result.iterator();
+    }
+
     // TODO: 12/12/16 does not handle translocation yet
     /**
      * Produces a VC from a {@link NovelAdjacencyReferenceLocations}
