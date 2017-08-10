@@ -205,10 +205,6 @@ task M2 {
   String? m2_extra_args
 
   command <<<
-  if [[ "_${normal_bam}" == *.bam ]]; then
-      samtools view -H ${normal_bam} | sed -n "/SM:/{s/.*SM:\\(\\)/\\1/; s/\\t.*//p ;q};" > normal_name.txt
-      normal_command_line="-I ${normal_bam} -normal `cat normal_name.txt`"
-  fi
 
   # Use GATK Jar override if specified
   GATK_JAR=${gatk4_jar}
@@ -216,7 +212,16 @@ task M2 {
       GATK_JAR=${gatk4_jar_override}
   fi
 
-  samtools view -H ${tumor_bam} | sed -n "/SM:/{s/.*SM:\\(\\)/\\1/; s/\\t.*//p ;q};" > tumor_name.txt
+  if [[ "_${normal_bam}" == *.bam ]]; then
+      #samtools view -H ${normal_bam} | sed -n "/SM:/{s/.*SM:\\(\\)/\\1/; s/\\t.*//p ;q};" > normal_name.txt
+      java -Xmx4g -jar $GATK_JAR GetSampleName -I ${normal_bam} -O normal_name.txt
+      normal_command_line="-I ${normal_bam} -normal `cat normal_name.txt`"
+  fi
+
+
+
+  #samtools view -H ${tumor_bam} | sed -n "/SM:/{s/.*SM:\\(\\)/\\1/; s/\\t.*//p ;q};" > tumor_name.txt
+  java -Xmx4g -jar $GATK_JAR GetSampleName -I ${tumor_bam} -O tumor_name.txt
 
   java -Xmx4g -jar $GATK_JAR Mutect2 \
     -R ${ref_fasta} \
