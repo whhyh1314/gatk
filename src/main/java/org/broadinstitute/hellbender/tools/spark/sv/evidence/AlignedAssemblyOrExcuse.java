@@ -109,7 +109,7 @@ public final class AlignedAssemblyOrExcuse {
         }
     }
 
-    private static SAMFileWriter createSAMFileWriter(final String samFile, final SAMFileHeader header, final boolean preOrdered) {
+    public static SAMFileWriter createSAMFileWriter(final String samFile, final SAMFileHeader header, final boolean preOrdered) {
         final SAMFileWriterFactory factory = new SAMFileWriterFactory();
         final int lastDotIndex = samFile.lastIndexOf('.');
         if (lastDotIndex >= 0) {
@@ -300,7 +300,7 @@ public final class AlignedAssemblyOrExcuse {
         return contigAlignments;
     }
 
-    private Stream<SAMRecord> toSAMStreamForAlignmentsOfThisAssembly(final SAMFileHeader header, final List<String> refNames) {
+    public Stream<SAMRecord> toSAMStreamForAlignmentsOfThisAssembly(final SAMFileHeader header, final List<String> refNames) {
         Utils.validate(isNotFailure(), "Can't stream SAM records from a failed assembly.");
         return IntStream.range(0, contigAlignments.size()).boxed()
                 .flatMap(contigIdx ->
