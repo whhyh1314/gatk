@@ -2,9 +2,9 @@ package org.broadinstitute.hellbender.tools;
 
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.BetaFeature;
-import org.broadinstitute.barclay.argparser.CommandLineProgramGroup;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
+import org.broadinstitute.hellbender.cmdline.programgroups.QCProgramGroup;
 import org.broadinstitute.hellbender.engine.GATKTool;
 import org.broadinstitute.hellbender.exceptions.UserException;
 
@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @CommandLineProgramProperties(
-        summary = "Emit the sample name from the bam header.",
-        oneLineSummary = "If the bam has more than one sample or zero samples, this tool will error, by design.  This tool has not been tested extensively.",
-        programGroup = CommandLineProgramGroup.class
+        oneLineSummary = "Emit a single sample name from the bam header into an output file.",
+        summary = "If the bam has more than one sample or zero samples, this tool will error, by design.  This tool has not been tested extensively.  Most options supported by the GATK are irrelevant for this tool.",
+        programGroup = QCProgramGroup.class
 )
 @BetaFeature
 public class GetSampleName extends GATKTool{
@@ -33,6 +33,9 @@ public class GetSampleName extends GATKTool{
     public void traverse() {
         // Do nothing!
     }
+
+    @Override
+    public boolean requiresReads() {return true;}
 
     @Override
     public void onTraversalStart() {
