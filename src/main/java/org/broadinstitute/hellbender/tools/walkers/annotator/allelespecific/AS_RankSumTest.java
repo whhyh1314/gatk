@@ -64,7 +64,7 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         for (Allele a : vcAlleles) {
             perAlleleValues.put(a, new CompressedDataList<Integer>());
         }
-        final AlleleSpecificAnnotationData ret = new AlleleSpecificAnnotationData(vcAlleles, perAlleleValues.toString());
+        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> ret = new AlleleSpecificAnnotationData<>(vcAlleles, perAlleleValues.toString());
         ret.setAttributeMap(perAlleleValues);
         return ret;
     }
@@ -131,7 +131,7 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
             return new HashMap<>();
 
         final Map<String,Object> annotations = new HashMap<>();
-        final AlleleSpecificAnnotationData<Histogram> myData = new AlleleSpecificAnnotationData(originalVC.getAlleles(), rawRankSumData);
+        final AlleleSpecificAnnotationData<Histogram> myData = new AlleleSpecificAnnotationData<>(originalVC.getAlleles(), rawRankSumData);
         parseCombinedDataString(myData);
 
         final Map<Allele, Double> perAltRankSumResults = calculateReducedData(myData.getAttributeMap(), myData.getRefAllele());

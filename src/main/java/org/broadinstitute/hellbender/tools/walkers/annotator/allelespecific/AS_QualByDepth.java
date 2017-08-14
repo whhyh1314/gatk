@@ -71,6 +71,7 @@ public class AS_QualByDepth extends InfoFieldAnnotation implements ReducibleAnno
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public Map<String, Object> combineRawData(List<Allele> allelesList, List<? extends ReducibleAnnotationData> listOfRawData) {
         return null;
     }
