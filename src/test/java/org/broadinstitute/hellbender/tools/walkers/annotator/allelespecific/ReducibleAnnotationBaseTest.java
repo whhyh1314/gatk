@@ -164,7 +164,7 @@ public abstract class ReducibleAnnotationBaseTest extends BaseTest {
 
             final Set<String> rsIDs = new LinkedHashSet<>(1); // most of the time there's one id
             int depth = 0;
-            final Map<String, List<ReducibleAnnotationData>> annotationMap = new LinkedHashMap<>();
+            final Map<String, List<ReducibleAnnotationData<Object>>> annotationMap = new LinkedHashMap<>();
 
             final GenotypesContext genotypes = GenotypesContext.create();
 
@@ -207,13 +207,13 @@ public abstract class ReducibleAnnotationBaseTest extends BaseTest {
         }
 
         protected <T extends Comparable<? super T>> void addReferenceConfidenceAttributes(final VCWithNewAlleles vcPair,
-                                                                                                 final Map<String, List<ReducibleAnnotationData>> annotationMap) {
+                                                                                                 final Map<String, List<ReducibleAnnotationData<Object>>> annotationMap) {
             for (final Map.Entry<String, Object> p : vcPair.getVc().getAttributes().entrySet()) {
                 final String key = p.getKey();
                 final List<Object> valueList = vcPair.getVc().getAttributeAsList(key);
 
                 // add the annotation values to a list for combining later
-                List<ReducibleAnnotationData> values = annotationMap.get(key);
+                List<ReducibleAnnotationData<Object>> values = annotationMap.get(key);
                 if (values == null) {
                     values = new ArrayList<>();
                     annotationMap.put(key, values);
@@ -233,7 +233,7 @@ public abstract class ReducibleAnnotationBaseTest extends BaseTest {
         }
 
 
-        public Map<String, Object> mergeAttributes(int depth, List<Allele> alleleList, Map<String, List<ReducibleAnnotationData>> annotationMap) {
+        public Map<String, Object> mergeAttributes(int depth, List<Allele> alleleList, Map<String, List<ReducibleAnnotationData<Object>>> annotationMap) {
             final Map<String, Object> attributes = new LinkedHashMap<>();
 
             attributes.putAll(annotatorEngine.combineAnnotations(alleleList, annotationMap));

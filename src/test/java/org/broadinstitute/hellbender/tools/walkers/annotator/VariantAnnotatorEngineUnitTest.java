@@ -58,10 +58,10 @@ public final class VariantAnnotatorEngineUnitTest extends BaseTest {
                 ArtificialAnnotationUtils.makeLikelihoods("sample1", refReads, altReads, -10.0, -9.0, REF, ALT);
 
         final VariantContext vc = ArtificialAnnotationUtils.makeVC();
-        final ReducibleAnnotationData<Number> myData = new ReducibleAnnotationData<>("-10.0");
+        final ReducibleAnnotationData<Object> myData = new ReducibleAnnotationData<>("-10.0");
 
         new AS_RMSMappingQuality().calculateRawData(vc, likelihoods, myData);
-        Map<String, List<ReducibleAnnotationData>> testAnnotationData = new HashMap<>();
+        Map<String, List<ReducibleAnnotationData<Object>>> testAnnotationData = new HashMap<>();
         testAnnotationData.put(new AS_RMSMappingQuality().getRawKeyName(), Collections.singletonList(myData));
 
         Map<String, Object> value = vae.combineAnnotations(alleles, testAnnotationData);

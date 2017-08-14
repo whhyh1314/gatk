@@ -48,7 +48,7 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         }
 
         final Map<String, Object> annotations = new HashMap<>();
-        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> myRawData = initializeNewAnnotationData(vc.getAlleles());
+        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> myRawData = initializeNewRawAnnotationData(vc.getAlleles());
         calculateRawData(vc, likelihoods, myRawData);
         Map<Allele, List<Double>> myRankSumStats = calculateRankSum(myRawData.getAttributeMap(), myRawData.getRefAllele());
         final String annotationString = makeRawAnnotationString(vc.getAlleles(),myRankSumStats);
@@ -59,12 +59,22 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         return annotations;
     }
 
-    private AlleleSpecificAnnotationData<CompressedDataList<Integer>> initializeNewAnnotationData(final List<Allele> vcAlleles) {
+    protected AlleleSpecificAnnotationData<CompressedDataList<Integer>> initializeNewRawAnnotationData(final List<Allele> vcAlleles) {
         Map<Allele, CompressedDataList<Integer>> perAlleleValues = new HashMap<>();
         for (Allele a : vcAlleles) {
             perAlleleValues.put(a, new CompressedDataList<Integer>());
         }
-        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> ret = new AlleleSpecificAnnotationData<>(vcAlleles, perAlleleValues.toString());
+        final AlleleSpecificAnnotationData ret = new AlleleSpecificAnnotationData(vcAlleles, perAlleleValues.toString());
+        ret.setAttributeMap(perAlleleValues);
+        return ret;
+    }
+
+    private AlleleSpecificAnnotationData<Histogram> initializeNewAnnotationData(final List<Allele> vcAlleles) {
+        Map<Allele, Histogram> perAlleleValues = new HashMap<>();
+        for (Allele a : vcAlleles) {
+            perAlleleValues.put(a, new Histogram());
+        }
+        final AlleleSpecificAnnotationData<Histogram> ret = new AlleleSpecificAnnotationData<>(vcAlleles, perAlleleValues.toString());
         ret.setAttributeMap(perAlleleValues);
         return ret;
     }

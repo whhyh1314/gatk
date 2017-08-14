@@ -144,6 +144,7 @@ public final class VariantAnnotatorEngine {
      * @param annotationMap attributes of merged variant contexts -- is modifying by removing successfully combined annotations
      * @return  a map containing the keys and raw values for the combined annotations
      */
+    //@SuppressWarnings()
     public Map<String, Object> combineAnnotations(final List<Allele> allelesList, Map<String, List<ReducibleAnnotationData<Object>>> annotationMap) {
         Map<String, Object> combinedAnnotations = new HashMap<>();
 
