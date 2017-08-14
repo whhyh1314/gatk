@@ -526,4 +526,6 @@ public final class VariantAnnotatorEngineUnitTest extends BaseTest {
         }
         Assert.assertFalse(variantAnnotatorEngine.getVCFAnnotationDescriptions().contains(null));
     }
+
+    //TODO add test for AnnotateContextForActiveRegion
 }

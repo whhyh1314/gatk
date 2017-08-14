@@ -3,9 +3,11 @@ package org.broadinstitute.hellbender.tools.walkers.annotator.allelespecific;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.tools.walkers.annotator.*;
+import org.broadinstitute.hellbender.utils.MannWhitneyU;
 import org.broadinstitute.hellbender.utils.genotyper.ReadLikelihoods;
 import org.broadinstitute.hellbender.utils.variant.GATKVCFHeaderLines;
 
@@ -46,9 +48,10 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         }
 
         final Map<String, Object> annotations = new HashMap<>();
-        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> myData = initializeNewAnnotationData(vc.getAlleles());
-        calculateRawData(vc, likelihoods, myData);
-        final String annotationString = makeRawAnnotationString(vc.getAlleles(), myData.getAttributeMap());
+        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> myRawData = initializeNewAnnotationData(vc.getAlleles());
+        calculateRawData(vc, likelihoods, myRawData);
+        Map<Allele, List<Double>> myRankSumStats = calculateRankSum(myRawData.getAttributeMap(), myRawData.getRefAllele());
+        final String annotationString = makeRawAnnotationString(vc.getAlleles(),myRankSumStats);
         if (annotationString == null){
             return Collections.emptyMap();
         }
@@ -57,29 +60,31 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
     }
 
     private AlleleSpecificAnnotationData<CompressedDataList<Integer>> initializeNewAnnotationData(final List<Allele> vcAlleles) {
-        Map<Allele, Histogram> perAlleleValues = new HashMap<>();
+        Map<Allele, CompressedDataList<Integer>> perAlleleValues = new HashMap<>();
         for (Allele a : vcAlleles) {
-            perAlleleValues.put(a, new Histogram());
+            perAlleleValues.put(a, new CompressedDataList<Integer>());
         }
-        final AlleleSpecificAnnotationData ret = new AlleleSpecificAnnotationData(vcAlleles, perAlleleValues.toString());
+        final AlleleSpecificAnnotationData<CompressedDataList<Integer>> ret = new AlleleSpecificAnnotationData<>(vcAlleles, perAlleleValues.toString());
         ret.setAttributeMap(perAlleleValues);
         return ret;
     }
 
-    private String makeRawAnnotationString(final List<Allele> vcAlleles, final Map<Allele, CompressedDataList<Integer>> perAlleleValues) {
-        if (perAlleleValues.values().stream().allMatch(d -> d.isEmpty())){
-            return null;
+    protected String makeRawAnnotationString(final List<Allele> vcAlleles, final Map<Allele, List<Double>> perAlleleValues) {
+        String annotationString = "";
+        for (int i = 0; i< vcAlleles.size(); i++) {
+            if (vcAlleles.get(i).isReference())
+                continue;
+            if (i != 0)
+                annotationString += PRINT_DELIM;
+            final List<Double> alleleValue = perAlleleValues.get(vcAlleles.get(i));
+            //can be null if there are no ref reads
+            if (alleleValue == null)
+                continue;
+            annotationString += formatListAsString(alleleValue);
         }
-        final StringBuilder annotationString = new StringBuilder();
-        for (int i =0; i< vcAlleles.size(); i++) {
-            if (i!=0) {
-                annotationString.append(PRINT_DELIM);
-            }
-            final CompressedDataList<Integer> alleleValues = perAlleleValues.get(vcAlleles.get(i));
-            annotationString.append(alleleValues);
-        }
-        return annotationString.toString();
+        return annotationString;
     }
+
 
     @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     @Override
@@ -169,9 +174,7 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
     public Map<Allele, Double> calculateReducedData(final Map<Allele, Histogram> perAlleleValues, final Allele ref) {
         final Map<Allele, Double> perAltRankSumResults = new HashMap<>();
         for (final Allele alt : perAlleleValues.keySet()) {
-            if (alt.equals(ref, false))
-                continue;
-            if (perAlleleValues.get(alt) != null)
+            if (!alt.equals(ref, false) && perAlleleValues.get(alt) != null)
                 perAltRankSumResults.put(alt, perAlleleValues.get(alt).median());
         }
         return perAltRankSumResults;
@@ -268,4 +271,45 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         }
         return annotationString;
     }
+
+    public Map<Allele, List<Double>> calculateRankSum(final Map<Allele, CompressedDataList<Integer>> perAlleleValues, final Allele ref) {
+        final Map<Allele, List<Double>> perAltRankSumResults = new HashMap<>();
+        //shortcut to not try to calculate rank sum if there are no reads that unambiguously support the ref
+        if (perAlleleValues.get(ref).isEmpty())
+            return perAltRankSumResults;
+        for (final Allele alt : perAlleleValues.keySet()) {
+            if (alt.equals(ref, false))
+                continue;
+            final MannWhitneyU mannWhitneyU = new MannWhitneyU();
+            //load alts (series 1)
+            final List<Double> alts = new ArrayList<>();
+            for (final Number qual : perAlleleValues.get(alt)) {
+                alts.add((double) qual.intValue());
+            }
+            //load refs (series 2)
+            final List<Double> refs = new ArrayList<>();
+            for (final Number qual : perAlleleValues.get(ref)) {
+                refs.add((double) qual.intValue());
+            }
+
+            // we are testing that set1 (the alt bases) have lower quality scores than set2 (the ref bases)
+            final MannWhitneyU.Result result = mannWhitneyU.test(ArrayUtils.toPrimitive(alts.toArray(new Double[alts.size()])),
+                                                                 ArrayUtils.toPrimitive(refs.toArray(new Double[alts.size()])),
+                                                                 MannWhitneyU.TestType.FIRST_DOMINATES);
+            perAltRankSumResults.put(alt, Collections.singletonList(result.getZ()));
+        }
+        return perAltRankSumResults;
+    }
+
+    public String formatListAsString(final List<Double> rankSumValues) {
+        String formattedString = "";
+        for (int i=0; i<rankSumValues.size(); i++) {
+            if(i!=0)
+                formattedString += REDUCED_DELIM;
+            //we can get NaNs if one of the ref or alt lists is empty (e.g. homVar genotypes), but VQSR will process them appropriately downstream
+            formattedString += String.format("%.3f", rankSumValues.get(i));
+        }
+        return formattedString;
+    }
+
 }

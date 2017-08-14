@@ -144,7 +144,7 @@ public final class VariantAnnotatorEngine {
      * @param annotationMap attributes of merged variant contexts -- is modifying by removing successfully combined annotations
      * @return  a map containing the keys and raw values for the combined annotations
      */
-    public Map<String, Object> combineAnnotations(final List<Allele> allelesList, Map<String, List<ReducibleAnnotationData>> annotationMap) {
+    public Map<String, Object> combineAnnotations(final List<Allele> allelesList, Map<String, List<ReducibleAnnotationData<Object>>> annotationMap) {
         Map<String, Object> combinedAnnotations = new HashMap<>();
 
         // go through all the requested reducible info annotationTypes
@@ -152,7 +152,7 @@ public final class VariantAnnotatorEngine {
             if (annotationType instanceof ReducibleAnnotation) {
                 ReducibleAnnotation currentASannotation = (ReducibleAnnotation) annotationType;
                 if (annotationMap.containsKey(currentASannotation.getRawKeyName())) {
-                    final List<ReducibleAnnotationData> annotationValue = annotationMap.get(currentASannotation.getRawKeyName());
+                    final List<ReducibleAnnotationData<Object>> annotationValue = annotationMap.get(currentASannotation.getRawKeyName());
                     final Map<String, Object> annotationsFromCurrentType = currentASannotation.combineRawData(allelesList, annotationValue);
                     combinedAnnotations.putAll(annotationsFromCurrentType);
                     //remove the combined annotations so that the next method only processes the non-reducible ones

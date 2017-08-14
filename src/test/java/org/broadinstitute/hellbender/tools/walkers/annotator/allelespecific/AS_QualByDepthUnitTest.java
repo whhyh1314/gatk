@@ -20,4 +20,6 @@ public class AS_QualByDepthUnitTest extends ReducibleAnnotationBaseTest {
     protected String getRawKey() {
         return GATKVCFConstants.AS_QUAL_KEY;
     }
+
+    //TODO add getAlleleDepths() test
 }
