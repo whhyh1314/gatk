@@ -56,16 +56,4 @@ public class AS_ReadPosRankSumTestUnitTest extends ReducibleAnnotationBaseTest {
         return GATKVCFConstants.AS_RAW_READ_POS_RANK_SUM_KEY;
     }
 
-    @Test //TODO eliminate
-    public void testFeatureReaderAnnotationFeature() {
-        FeatureDataSource<VariantContext> CombineVCFOutput = new FeatureDataSource(getTestFile("CombineGVCFs.output.vcf"));
-        Integer[] interestingLocs = {10433322};
-        List<SimpleInterval> intervals = Arrays.stream(interestingLocs).map(m -> new SimpleInterval("20", m, m)).collect(Collectors.toList());
-        for(SimpleInterval loc: intervals) {
-            VariantContext a = CombineVCFOutput
-                    .query(loc).next();
-            Object r = a.getAttribute(GATKVCFConstants.AS_RAW_READ_POS_RANK_SUM_KEY);
-            System.out.print(r);
-        }
-    }
 }

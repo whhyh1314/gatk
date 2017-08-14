@@ -318,8 +318,8 @@ public final class RMSMappingQualityUnitTest {
         final Allele altAllele = Allele.create("T");
         final VariantContext vc = new VariantContextBuilder().alleles(Arrays.asList(refAllele, altAllele))
                 .chr("1").start(15L).stop(15L).make();
-        final List<GATKRead> refReads = Collections.EMPTY_LIST;
-        final List<GATKRead> altReads = Collections.EMPTY_LIST;
+        final List<GATKRead> refReads = Collections.emptyList();
+        final List<GATKRead> altReads = Collections.emptyList();
         final ReadLikelihoods<Allele> likelihoods = ArtificialAnnotationUtils.makeLikelihoods("sample1", refReads, altReads, -100, -100 ,refAllele, altAllele);
         Assert.assertEquals(RMSMappingQuality.getNumOfReads(vc,likelihoods), -1);
     }

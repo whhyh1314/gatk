@@ -1,46 +1,30 @@
 package org.broadinstitute.hellbender.tools.walkers.annotator.allelespecific;
 
-import com.google.common.annotations.VisibleForTesting;
 import htsjdk.samtools.util.Locatable;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.vcf.VCFConstants;
-import org.apache.commons.lang3.ArrayUtils;
 import org.broadinstitute.hellbender.engine.FeatureDataSource;
 import org.broadinstitute.hellbender.engine.FeatureInput;
-import org.broadinstitute.hellbender.engine.ReferenceContext;
-import org.broadinstitute.hellbender.engine.ReferenceContextUnitTest;
 import org.broadinstitute.hellbender.tools.walkers.ReferenceConfidenceVariantContextMerger;
-import org.broadinstitute.hellbender.tools.walkers.ReferenceConfidenceVariantContextMergerUnitTest;
-import org.broadinstitute.hellbender.tools.walkers.annotator.ArtificialAnnotationUtils;
 import org.broadinstitute.hellbender.tools.walkers.annotator.VariantAnnotatorEngine;
-import org.broadinstitute.hellbender.tools.walkers.haplotypecaller.ReferenceConfidenceMode;
-import org.broadinstitute.hellbender.utils.*;
-import org.broadinstitute.hellbender.utils.genotyper.AlleleList;
-import org.broadinstitute.hellbender.utils.genotyper.ReadLikelihoods;
-import org.broadinstitute.hellbender.utils.iterators.IntervalLocusIterator;
-import org.broadinstitute.hellbender.utils.read.GATKRead;
+import org.broadinstitute.hellbender.utils.SimpleInterval;
+import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.test.BaseTest;
-import org.broadinstitute.hellbender.utils.variant.GATKVCFConstants;
-import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.lang.ref.Reference;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.testng.Assert.*;
 
 /**
  * A class for storing end-end integration tests over artificial data intended to test allele specific annotation implementations,
  * As of 8/4/17, test output was matched against GATK3 implementations of combineGVCFs().
  */
 public abstract class ReducibleAnnotationBaseTest extends BaseTest {
-    private FeatureDataSource<VariantContext> VCFA = new FeatureDataSource(getTestFile("NA12878.AS.chr20snippet.g.vcf"));
-    private FeatureDataSource<VariantContext> VCFB = new FeatureDataSource(getTestFile("NA12892.AS.chr20snippet.g.vcf"));
-    private FeatureDataSource<VariantContext> CombineVCFOutput = new FeatureDataSource(getTestFile("CombineGVCFs.output.vcf"));
+    private FeatureDataSource<VariantContext> VCFA = new FeatureDataSource<>(getTestFile("NA12878.AS.chr20snippet.g.vcf"));
+    private FeatureDataSource<VariantContext> VCFB = new FeatureDataSource<>(getTestFile("NA12892.AS.chr20snippet.g.vcf"));
+    private FeatureDataSource<VariantContext> CombineVCFOutput = new FeatureDataSource<>(getTestFile("CombineGVCFs.output.vcf"));
 
     @Override
     public String getToolTestDataDir(){
@@ -225,7 +209,7 @@ public abstract class ReducibleAnnotationBaseTest extends BaseTest {
                     combinedString += valueList.get(i);
                 }
 
-                ReducibleAnnotationData pairData = new AlleleSpecificAnnotationData(vcPair.getNewAlleles(), combinedString);
+                ReducibleAnnotationData<Object> pairData = new AlleleSpecificAnnotationData<>(vcPair.getNewAlleles(), combinedString);
                 values.add(pairData);
                 annotationMap.put(key, values);
             }
