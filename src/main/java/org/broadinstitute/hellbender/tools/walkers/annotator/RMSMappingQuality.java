@@ -65,6 +65,7 @@ public final class RMSMappingQuality extends InfoFieldAnnotation implements Stan
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public Map<String, Object> combineRawData(final List<Allele> vcAlleles, final List<? extends ReducibleAnnotationData> annotationList) {
         //VC already contains merged alleles from ReferenceConfidenceVariantContextMerger
         ReducibleAnnotationData combinedData = new ReducibleAnnotationData(null);
@@ -85,6 +86,7 @@ public final class RMSMappingQuality extends InfoFieldAnnotation implements Stan
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public Map<String, Object> finalizeRawData(final VariantContext vc, final VariantContext originalVC) {
         if (!vc.hasAttribute(getRawKeyName()))
             return new HashMap<>();

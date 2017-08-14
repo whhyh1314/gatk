@@ -190,6 +190,7 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
         return perAltRankSumResults;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public Map<String, Object> combineRawData(final List<Allele> vcAlleles, final List<? extends ReducibleAnnotationData> annotationList) {
         //VC already contains merged alleles from ReferenceConfidenceVariantContextMerger
         final ReducibleAnnotationData combinedData = initializeNewAnnotationData(vcAlleles);

@@ -101,6 +101,7 @@ public abstract class AS_StrandBiasTest extends StrandBiasTest implements Reduci
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public Map<String, Object> combineRawData(final List<Allele> vcAlleles, final List<? extends ReducibleAnnotationData> annotationList) {
         //VC already contains merged alleles from ReferenceConfidenceVariantContextMerger
         ReducibleAnnotationData combinedData = new AlleleSpecificAnnotationData(vcAlleles, null);

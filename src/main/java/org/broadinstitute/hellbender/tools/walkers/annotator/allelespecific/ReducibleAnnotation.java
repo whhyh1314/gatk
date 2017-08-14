@@ -34,6 +34,7 @@ public interface ReducibleAnnotation extends Annotation {
      * @param listOfRawData The raw data for all the variants being combined/merged
      * @return
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})//FIXME generics here blow up
     public abstract Map<String, Object> combineRawData(final List<Allele> allelesList, final List <? extends ReducibleAnnotationData> listOfRawData);
 
     /**
