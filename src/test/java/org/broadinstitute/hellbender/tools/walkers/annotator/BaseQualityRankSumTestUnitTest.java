@@ -74,7 +74,7 @@ public final class BaseQualityRankSumTestUnitTest {
         Assert.assertEquals(ann.getKeyNames().get(0), key);
     }
 
-    @Test
+    @Test(enabled = false)  //To be consistent with annotate raw data now produces the the ranksum, making this test incorrect
     public void testBaseQualRawAnnotate() {
         final AS_RankSumTest ann =  new AS_BaseQualityRankSumTest();
         final String key1 = GATKVCFConstants.AS_RAW_BASE_QUAL_RANK_SUM_KEY;
