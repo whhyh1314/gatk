@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * Given identified pair of breakpoints for a simple SV and its supportive evidence, i.e. chimeric alignments,
  * produce an annotated {@link VariantContext}.
  */
-class AnnotatedVariantProducer implements Serializable {
+public class AnnotatedVariantProducer implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static Iterator<VariantContext> produceMultipleAnnotatedVcFromNovelAdjacency(final NovelAdjacencyReferenceLocations novelAdjacencyReferenceLocations,
