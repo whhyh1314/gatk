@@ -1,4 +1,4 @@
-package org.broadinstitute.hellbender.tools.spark.sv.playground;
+package org.broadinstitute.hellbender.tools.spark.sv.discovery.prototype;
 
 import htsjdk.samtools.TextCigarCodec;
 import org.broadinstitute.hellbender.engine.spark.SparkContextFactory;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.broadinstitute.hellbender.tools.spark.sv.playground.InternalFilterLongReadAlignmentsSAMSpark.getCanonicalChromosomes;
+import static org.broadinstitute.hellbender.tools.spark.sv.discovery.prototype.InternalFilterLongReadAlignmentsSAMSpark.getCanonicalChromosomes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
